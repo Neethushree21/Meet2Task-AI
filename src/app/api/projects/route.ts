@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // Soft GitHub validation — log warning but never block project creation
     if (body.github_owner && body.github_repo) {
        try {
           const ghRes = await fetch(`https://api.github.com/repos/${body.github_owner}/${body.github_repo}`, {
@@ -75,10 +76,11 @@ export async function POST(req: NextRequest) {
              }
           });
           if (!ghRes.ok) {
-             return NextResponse.json({ error: "Invalid GitHub owner or repository." }, { status: 400 });
+             // Just log warning — do NOT block creation
+             console.warn(`GitHub repo ${body.github_owner}/${body.github_repo} could not be validated (status ${ghRes.status}). Proceeding anyway.`);
           }
        } catch (e) {
-          return NextResponse.json({ error: "Failed to validate repository" }, { status: 500 });
+          console.warn("GitHub validation network error — proceeding without validation.");
        }
     }
 
