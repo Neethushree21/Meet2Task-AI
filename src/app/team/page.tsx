@@ -141,12 +141,18 @@ export default function TeamPage() {
                  </div>
                  <div className="flex flex-col gap-1.5">
                    <label className="text-sm font-semibold">Linked Project *</label>
-                   <select required value={projectId} onChange={e => setProjectId(e.target.value)} className="px-3 py-2 border rounded-md text-sm bg-background">
-                      <option value="">Select Project...</option>
-                      {projects.map(p => (
-                         <option key={p.project_id} value={p.project_id}>{p.project_name}</option>
-                      ))}
-                   </select>
+                   {projects.length === 0 ? (
+                      <div className="text-sm text-red-500 bg-red-500/10 p-2 rounded border border-red-500/20">
+                         You must create a Project first before you can create a Team!
+                      </div>
+                   ) : (
+                      <select required value={projectId} onChange={e => setProjectId(e.target.value)} className="px-3 py-2 border rounded-md text-sm bg-background">
+                         <option value="">Select Project...</option>
+                         {projects.map(p => (
+                            <option key={p.project_id} value={p.project_id}>{p.project_name}</option>
+                         ))}
+                      </select>
+                   )}
                  </div>
                  <div className="flex flex-col gap-1.5">
                    <label className="text-sm font-semibold">GitHub Usernames</label>
@@ -155,7 +161,7 @@ export default function TeamPage() {
                </CardContent>
                <CardFooter className="flex justify-end gap-3 pt-4 border-t border-border/50">
                  <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-medium hover:bg-secondary rounded-md" disabled={isSubmitting}>Cancel</button>
-                 <button type="submit" className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md flex items-center gap-2" disabled={isSubmitting}>
+                 <button type="submit" className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md flex items-center gap-2" disabled={isSubmitting || projects.length === 0}>
                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Create Team
                  </button>
                </CardFooter>
