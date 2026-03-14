@@ -13,9 +13,11 @@ export async function GET(req: NextRequest) {
   const projectId = searchParams.get("project_id");
 
   try {
-    let query = adminDb.collection("teams").orderBy("created_at", "desc");
+    let query: any = adminDb.collection("teams");
     if (projectId) {
-      query = query.where("project_id", "==", projectId) as typeof query;
+      query = query.where("project_id", "==", projectId);
+    } else {
+      query = query.orderBy("created_at", "desc");
     }
     const snapshot = await query.get();
     const teams = snapshot.docs.map((doc: any) => doc.data());
@@ -34,12 +36,33 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    const members = body.members || [];
+
+    // Verify all github usernames
+    if (members.length > 0) {
+       for (const username of members) {
+          try {
+             const ghRes = await fetch(`https://api.github.com/users/${username}`, {
+                 headers: {
+                    "Authorization": `token ${process.env.GITHUB_TOKEN}`,
+                    "Accept": "application/vnd.github.v3+json"
+                 }
+             });
+             if (!ghRes.ok) {
+                 return NextResponse.json({ error: `Invalid GitHub username: ${username}` }, { status: 400 });
+             }
+          } catch (e) {
+             return NextResponse.json({ error: "Failed to validate GitHub usernames due to network error." }, { status: 500 });
+          }
+       }
+    }
+
     const teamId = uuidv4();
     const team = {
       team_id: teamId,
       project_id: body.project_id,
       team_name: body.team_name,
-      members: body.members || [],
+      members: members,
       created_at: new Date().toISOString(),
     };
 

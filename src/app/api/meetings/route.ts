@@ -13,12 +13,16 @@ export async function GET(req: NextRequest) {
   const projectId = searchParams.get("project_id");
 
   try {
-    let query = adminDb.collection("meetings").orderBy("created_at", "desc");
+    let query: any = adminDb.collection("meetings");
     if (projectId) {
-      query = query.where("project_id", "==", projectId) as typeof query;
+      query = query.where("project_id", "==", projectId);
+    } else {
+      query = query.orderBy("created_at", "desc");
     }
-    const snapshot = await query.limit(20).get();
+    const snapshot = await query.get();
     const meetings = snapshot.docs.map((doc: any) => doc.data());
+    // Client side sort since index is missing for descending order alongside where clauses
+    meetings.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return NextResponse.json({ meetings });
   } catch (error) {
     console.error("Meetings fetch error:", error);

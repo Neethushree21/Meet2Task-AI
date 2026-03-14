@@ -30,6 +30,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+
+    if (body.github_owner && body.github_repo) {
+       try {
+          const ghRes = await fetch(`https://api.github.com/repos/${body.github_owner}/${body.github_repo}`, {
+             headers: {
+                "Authorization": `token ${process.env.GITHUB_TOKEN}`,
+                "Accept": "application/vnd.github.v3+json"
+             }
+          });
+          if (!ghRes.ok) {
+             return NextResponse.json({ error: "Invalid GitHub owner or repository." }, { status: 400 });
+          }
+       } catch (e) {
+          return NextResponse.json({ error: "Failed to validate repository" }, { status: 500 });
+       }
+    }
+
     const projectId = uuidv4();
     const project = {
       project_id: projectId,

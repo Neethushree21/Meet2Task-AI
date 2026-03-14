@@ -17,6 +17,7 @@ export default function TeamPage() {
   const [teamName, setTeamName] = useState("")
   const [projectId, setProjectId] = useState("")
   const [members, setMembers] = useState("") // comma separated for now
+  const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
     Promise.all([
@@ -34,6 +35,7 @@ export default function TeamPage() {
     if (!teamName.trim() || !projectId) return
 
     setIsSubmitting(true)
+    setErrorMsg("")
     try {
       const res = await fetch("/api/teams", {
         method: "POST",
@@ -45,6 +47,13 @@ export default function TeamPage() {
         })
       })
       const data = await res.json()
+      
+      if (!res.ok) {
+         setErrorMsg(data.error || "Failed to create team")
+         setIsSubmitting(false)
+         return
+      }
+
       if (data.team) {
         setTeams([data.team, ...teams])
         setShowModal(false)
@@ -53,7 +62,7 @@ export default function TeamPage() {
         setMembers("")
       }
     } catch (e) {
-      console.error(e)
+      setErrorMsg("Network error occurred")
     } finally {
       setIsSubmitting(false)
     }
@@ -125,6 +134,7 @@ export default function TeamPage() {
                  <CardDescription>Group members together for a specific project.</CardDescription>
                </CardHeader>
                <CardContent className="flex flex-col gap-4">
+                 {errorMsg && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">{errorMsg}</div>}
                  <div className="flex flex-col gap-1.5">
                    <label className="text-sm font-semibold">Team Name *</label>
                    <input required value={teamName} onChange={e => setTeamName(e.target.value)} className="px-3 py-2 border rounded-md text-sm bg-background" placeholder="e.g. Frontend Squad" />
