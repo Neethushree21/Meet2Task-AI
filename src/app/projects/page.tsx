@@ -55,7 +55,9 @@ export default function Projects() {
       const data = await res.json()
       
       if (!res.ok) {
-         setErrorMsg(data.error || "Failed to create project")
+         const serverError = data?.error || `HTTP Error ${res.status}: ${res.statusText}`;
+         setErrorMsg(serverError)
+         alert("Server rejected creation: " + serverError)
          setIsSubmitting(false)
          return
       }
@@ -68,8 +70,11 @@ export default function Projects() {
         setGithubOwner("")
         setGithubRepo("")
       }
-    } catch (e) {
-      setErrorMsg("Network error occurred")
+      } catch (e: any) {
+      console.error(e)
+      const msg = e?.message || "Critical Network error occurred";
+      setErrorMsg(msg)
+      alert("Error: " + msg)
     } finally {
       setIsSubmitting(false)
     }
