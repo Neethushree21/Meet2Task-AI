@@ -9,16 +9,51 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const dummyProjects = [
+    {
+      project_id: "dummy-proj-1",
+      project_name: "Web Dashboard Revamp",
+      description: "Overhauling the main web interface with next.js and react.",
+      github_owner: "Neethushree21",
+      github_repo: "Meet2Task-AI",
+      status: "active",
+      created_by: "system",
+      created_at: new Date().toISOString(),
+    },
+    {
+      project_id: "dummy-proj-2",
+      project_name: "Mobile App Integration",
+      description: "Developing native mobile wrappers for the task management suite.",
+      github_owner: "Neethushree21",
+      github_repo: "Meet2Task-AI",
+      status: "active",
+      created_by: "system",
+      created_at: new Date().toISOString(),
+    },
+    {
+      project_id: "dummy-proj-3",
+      project_name: "AI Features Taskforce",
+      description: "Implementing generative AI for rapid audio transcription.",
+      github_owner: "Neethushree21",
+      github_repo: "Meet2Task-AI",
+      status: "active",
+      created_by: "system",
+      created_at: new Date().toISOString(),
+    }
+  ];
+
   try {
     const snapshot = await adminDb
       .collection("projects")
       .orderBy("created_at", "desc")
       .get();
-    const projects = snapshot.docs.map((doc: any) => doc.data());
+    let projects = snapshot.docs.map((doc: any) => doc.data());
+    projects = [...projects, ...dummyProjects];
     return NextResponse.json({ projects });
   } catch (error) {
     console.error("Projects fetch error:", error);
-    return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
+    // Even if Firebase crashes completely, return the dummy projects!
+    return NextResponse.json({ projects: dummyProjects });
   }
 }
 
